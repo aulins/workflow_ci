@@ -1,14 +1,22 @@
-name: diabetes-prediction
+name: diabetes-prediction-model
 
 conda_env: conda.yaml
 
 entry_points:
     main:
         parameters:
-            data: { type: str, default: "dataset_preprocessing/diabetes_preprocessed.csv" }
-        command: "python modelling.py --data {data}"
+            data: { type: str, default: "../dataset_preprocessing/diabetes_preprocessed.csv" }
+            min_accuracy: { type: float, default: 0.70 }
+        command: "python modelling.py --data {data} --min-accuracy {min_accuracy}"
 
     train:
         parameters:
-            data: { type: str, default: "dataset_preprocessing/diabetes_preprocessed.csv" }
-        command: "python modelling.py --data {data}"
+            data: { type: str, default: "../dataset_preprocessing/diabetes_preprocessed.csv" }
+            min_accuracy: { type: float, default: 0.70 }
+        command: "python modelling.py --data {data} --min-accuracy {min_accuracy}"
+
+    predict:
+        parameters:
+            model_path: { type: str }
+            data: { type: str }
+        command: "python predict.py --model-path {model_path} --data {data}"
