@@ -28,7 +28,8 @@ warnings.filterwarnings('ignore')
 
 def setup_mlflow():
     """Setup MLflow tracking with proper configuration"""
-    mlflow_uri = os.getenv("MLFLOW_TRACKING_URI", "file:./mlruns")
+    # Force local file system tracking to avoid path issues
+    mlflow_uri = "file:./mlruns"
     mlflow.set_tracking_uri(mlflow_uri)
     
     # Create experiment if not exists
@@ -36,7 +37,10 @@ def setup_mlflow():
     try:
         experiment = mlflow.get_experiment_by_name(experiment_name)
         if experiment is None:
-            experiment_id = mlflow.create_experiment(experiment_name)
+            experiment_id = mlflow.create_experiment(
+                experiment_name,
+                artifact_location="./mlruns"  # Force local path
+            )
             print(f"✅ Created new experiment '{experiment_name}' with ID: {experiment_id}")
         else:
             print(f"✅ Using existing experiment '{experiment_name}' (ID: {experiment.experiment_id})")
@@ -232,12 +236,22 @@ def train(data_path: Path, min_accuracy: float = 0.70):
         mlflow.log_metric("n_features", X.shape[1])
         
         # Create and log visualizations
-        artifacts = create_visualizations(y_test, y_pred, model, X)
-        for artifact_path in artifacts:
-            if Path(artifact_path).exists():
-                mlflow.log_artifact(artifact_path)
-                # Clean up local file
-                Path(artifact_path).unlink()
+        try:
+            artifacts = create_visualizations(y_test, y_pred, model, X)
+            for artifact_path in artifacts:
+                if Path(artifact_path).exists():
+                    try:
+                        mlflow.log_artifact(artifact_path)
+                        print(f"✅ Artifact logged: {artifact_path}")
+                        # Clean up local file
+                        Path(artifact_path).unlink()
+                    except Exception as e:
+                        print(f"⚠️ Warning: Could not log artifact {artifact_path}: {e}")
+                        # Try to clean up anyway
+                        if Path(artifact_path).exists():
+                            Path(artifact_path).unlink()
+        except Exception as e:
+            print(f"⚠️ Warning: Could not create visualizations: {e}")
         
         # Log classification report as text
         try:
@@ -246,9 +260,17 @@ def train(data_path: Path, min_accuracy: float = 0.70):
             report_path = Path("classification_report.txt")
             with open(report_path, 'w') as f:
                 f.write(report)
-            mlflow.log_artifact(str(report_path))
-            report_path.unlink()
-            print("✅ Classification report logged")
+            
+            try:
+                mlflow.log_artifact(str(report_path))
+                print("✅ Classification report logged")
+            except Exception as e:
+                print(f"⚠️ Warning: Could not log classification report: {e}")
+            finally:
+                # Always clean up
+                if report_path.exists():
+                    report_path.unlink()
+                    
         except Exception as e:
             print(f"⚠️ Warning: Could not create classification report: {e}")
         
