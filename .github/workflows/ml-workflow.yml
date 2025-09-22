@@ -1,0 +1,98 @@
+name: ML Model Training and Validation
+
+on:
+    push:
+        branches: [main, develop]
+        paths:
+            - "MLProject/**"
+            - "dataset_preprocessing/**"
+            - ".github/workflows/**"
+    pull_request:
+        branches: [main]
+    schedule:
+        # Jalankan setiap hari jam 2 pagi UTC untuk re-training otomatis
+        - cron: "0 2 * * *"
+    workflow_dispatch:
+        # Memungkinkan trigger manual
+
+jobs:
+    train-model:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Miniconda
+              uses: conda-incubator/setup-miniconda@v2
+              with:
+                  auto-update-conda: true
+                  python-version: 3.9
+
+            - name: Install MLflow
+              run: |
+                  conda install -c conda-forge mlflow
+
+            - name: Create conda environment
+              run: |
+                  cd MLProject
+                  conda env create -f conda.yaml
+
+            - name: Activate environment and run training
+              run: |
+                  cd MLProject
+                  conda activate diabetes-ml
+                  mlflow run . --no-conda
+
+            - name: Check model artifacts
+              run: |
+                  if [ -d "MLProject/mlruns" ]; then
+                    echo "✅ MLflow artifacts created successfully"
+                    ls -la MLProject/mlruns/
+                  else
+                    echo "❌ No MLflow artifacts found"
+                    exit 1
+                  fi
+
+            - name: Upload MLflow artifacts
+              uses: actions/upload-artifact@v3
+              with:
+                  name: mlflow-artifacts
+                  path: MLProject/mlruns/
+                  retention-days: 30
+
+            - name: Model validation
+              run: |
+                  cd MLProject
+                  conda activate diabetes-ml
+                  python -c "
+                  import mlflow
+                  import os
+
+                  # Set tracking URI
+                  mlflow.set_tracking_uri('file:./mlruns')
+
+                  # Get latest run
+                  experiment = mlflow.get_experiment_by_name('diabetes-basic')
+                  if experiment:
+                      runs = mlflow.search_runs(experiment_ids=[experiment.experiment_id])
+                      if not runs.empty:
+                          latest_run = runs.iloc[0]
+                          accuracy = latest_run['metrics.accuracy']
+                          
+                          print(f'Model accuracy: {accuracy}')
+                          
+                          # Validation criteria
+                          if accuracy >= 0.70:
+                              print('✅ Model passed validation (accuracy >= 0.70)')
+                              exit(0)
+                          else:
+                              print('❌ Model failed validation (accuracy < 0.70)')
+                              exit(1)
+                      else:
+                          print('❌ No runs found')
+                          exit(1)
+                  else:
+                      print('❌ Experiment not found')
+                      exit(1)
+                  "

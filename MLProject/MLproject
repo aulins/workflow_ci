@@ -1,0 +1,14 @@
+name: diabetes-prediction
+
+conda_env: conda.yaml
+
+entry_points:
+    main:
+        parameters:
+            data: { type: str, default: "dataset_preprocessing/diabetes_preprocessed.csv" }
+        command: "python modelling.py --data {data}"
+
+    train:
+        parameters:
+            data: { type: str, default: "dataset_preprocessing/diabetes_preprocessed.csv" }
+        command: "python modelling.py --data {data}"

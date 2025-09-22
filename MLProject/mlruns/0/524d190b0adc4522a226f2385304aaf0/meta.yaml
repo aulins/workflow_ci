@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/aulin/OneDrive%20-%20Virtual%20Education%20Academy/Documents/Project/Dicoding/MLOps/Workflow_CI/MLProject/mlruns/0/524d190b0adc4522a226f2385304aaf0/artifacts
+end_time: 1758576180337
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 524d190b0adc4522a226f2385304aaf0
+run_name: languid-pug-223
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1758576176427
+status: 4
+tags: []
+user_id: aulin

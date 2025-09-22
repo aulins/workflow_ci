@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/aulin/OneDrive%20-%20Virtual%20Education%20Academy/Documents/Project/Dicoding/MLOps/Workflow_CI/MLProject/mlruns/0/88b005383164421b9a46a9e3cd064a52/artifacts
+end_time: 1758576714532
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 88b005383164421b9a46a9e3cd064a52
+run_name: masked-sow-999
+run_uuid: 88b005383164421b9a46a9e3cd064a52
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1758576710906
+status: 4
+tags: []
+user_id: aulin

@@ -1,0 +1,15 @@
+name: diabetes-ml
+channels:
+    - conda-forge
+    - defaults
+dependencies:
+    - python=3.9
+    - pip
+    - scikit-learn>=1.0.0
+    - pandas>=1.3.0
+    - numpy>=1.21.0
+    - matplotlib>=3.5.0
+    - seaborn>=0.11.0
+    - pip:
+          - mlflow>=2.0.0
+          - pathlib
